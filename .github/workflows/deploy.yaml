@@ -1,0 +1,59 @@
+name: Load JSON and Set Variables
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  load-json-and-set-vars:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.x
+
+    - name: Install jq
+      run: sudo apt-get install jq
+
+    
+    - name: Display environment variables before
+      run: env
+
+    - name: Load JSON and set variables
+      run: |
+        string="$GITHUB_REPOSITORY"
+        result="${string#vamshionrails/}"
+        echo "$result"
+
+        JSON_CONTENT=$(cat "$result.json")
+        echo "$JSON_CONTENT"
+        set_env_var() {
+          echo "$1=$(echo "$JSON_CONTENT" | jq -r "$2")" >> $GITHUB_ENV
+        }
+
+        set_env_var "REPO_NAME" '.REPO_NAME'
+        set_env_var "DESCRIPTION" '.DESCRIPTION'
+        set_env_var "PRIVATE" '.PRIVATE'
+
+        # Set nested variables
+        set_env_var "TEST_NAME" '.TEST.TEST_NAME'
+
+        # Set variables from TEST_ARRAY
+        TEST_ARRAY_LENGTH=$(echo "$JSON_CONTENT" | jq -r '.TEST_ARRAY | length')
+        for ((i=0; i<$TEST_ARRAY_LENGTH; i++)); do
+          set_env_var "TEST_ARRAY_NAME_$i" ".TEST_ARRAY[$i].TEST_ARRAY_NAME"
+        done
+      env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+          REPO_NAME: ${{ env.REPO_NAME }}
+          DESCRIPTION: ${{ env.DESCRIPTION }}
+          GITHUB_REPOSITORY: ${{ env.GITHUB_REPOSITORY }}
+
+    - name: Display environment variables
+      run: env

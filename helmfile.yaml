@@ -1,0 +1,21 @@
+repositories:
+  - name: cilium
+    url: https://helm.cilium.io/
+
+  - name: kubernetes-dashboard
+    url: https://kubernetes.github.io/dashboard/
+
+releases:
+  - name: cilium
+    namespace: default
+    chart: cilium/cilium
+    version: 1.10.2  # Specify the desired version
+    values:
+      - ./configs/cilium-values.yaml
+
+  - name: kubernetes-dashboard
+    namespace: default
+    chart: kubernetes-dashboard/kubernetes-dashboard
+    version: 4.2.0  # Specify the desired version
+    values:
+      - ./configs/k8s-dashboard-values.yaml
