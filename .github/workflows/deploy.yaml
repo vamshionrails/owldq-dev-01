@@ -79,8 +79,11 @@ jobs:
         CHARTS_DIR="./helmcharts/${{ steps.timestamp.outputs.timestamp }}"
         git config --global user.email "actions@github.com"
         git config --global user.name "GitHub Actions"
-        git add -A
+        git add -A 
         git commit -m "Update Helm charts ($(date +"%Y-%m-%d %H:%M:%S"))"
-        git push https://$GITHUB_ACTOR:$GITHUB_TOKEN@github.com/vamshionrails/$REPO_NAME HEAD:main
+        git branch -M main
+        git remote add origin https://$GITHUB_ACTOR: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@github.com/${{ github.repository }}.git
+        git push -u origin main
+        #git push https://$GITHUB_ACTOR:$GITHUB_TOKEN@github.com/vamshionrails/$REPO_NAME HEAD:main
    
     
