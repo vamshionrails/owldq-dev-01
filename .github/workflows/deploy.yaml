@@ -57,3 +57,32 @@ jobs:
 
     - name: Display environment variables
       run: env
+
+    - name: Set up Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: '3.6.1'  # Specify the Helm version you want to use
+
+    - name: Set up Helmfile
+      run: |
+        curl -fsSL -o /usr/local/bin/helmfile https://github.com/roboll/helmfile/releases/download/v0.140.0/helmfile_linux_amd64
+        chmod +x /usr/local/bin/helmfile
+
+    - name: Download Kubernetes Dashboard Helm Chart
+      run: |
+        helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
+        helm repo update
+        helm pull kubernetes-dashboard/kubernetes-dashboard --untar --destination "helmcharts/${{ steps.timestamp.outputs.timestamp }}"
+
+    - name: Authenticate with GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+    - name: Push Helm Charts to GHCR
+      run: |
+        CHARTS_DIR="./helmcharts/${{ steps.timestamp.outputs.timestamp }}"
+        GHCR_REPO="ghcr.io/${{ github.repository_owner }}/${{ github.repository_name }}"
+        for file in $CHARTS_DIR/*.tgz; do
+          chart_name=$(basename "$file")
+          docker tag "$file" "$GHCR_REPO/$chart_name"
+          docker push "$GHCR_REPO/$chart_name"
+        done
