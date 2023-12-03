@@ -89,13 +89,3 @@ jobs:
 
     - name: Authenticate with GHCR
       run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-    - name: Push Helm Charts to GHCR
-      run: |
-        CHARTS_DIR="./helmcharts/${{ steps.timestamp.outputs.timestamp }}"
-        GHCR_REPO="ghcr.io/${{ github.repository_owner }}/${{ github.repository_name }}"
-        for file in $CHARTS_DIR/*.tgz; do
-          chart_name=$(basename "$file")
-          docker tag "$file" "$GHCR_REPO/$chart_name"
-          docker push "$GHCR_REPO/$chart_name"
-        done
